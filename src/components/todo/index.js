@@ -1,36 +1,282 @@
-import React from "react";
-import { Button, Checkbox, FlexboxGrid, List } from "rsuite";
+import axios from "axios";
+import React, { useState } from "react";
+import { connect } from "react-redux";
+import { Redirect } from "react-router";
+import { Button, Checkbox, FlexboxGrid, List, Modal, Input, Alert, Tag } from "rsuite";
+import "./stylesheet.css";
 
-const finishedTodoStyle = {
-    textDecoration: "line-through",
-    color: "#aaa"
+function dateFormat(d) {
+    let date = new Date(d);
+    let month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+    let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+    let hour = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+    let minute = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+
+    return ` ${date.getFullYear()}-${month}-${day} ${hour}:${minute}`;
 }
 
-class todoPage extends React.Component {
+function AddTodoModal(props) {
+    let [content, setContent] = useState("");
+    let [open, setOpen] = useState(false);
+
+    const onAddTodo = () => {
+        axios.post("/api/todo/add", {
+            userId: props.userId,
+            content
+        }).then(response => {
+            if (response.status === 200) {
+                Alert.success("添加成功");
+                props.afterAdd(response.data);
+            } else {
+                Alert.error("添加失败");
+            }
+        }).catch(e => {
+            Alert.error("网络错误");
+        });
+        setOpen(false);
+    }
+
+    return (
+        <div>
+            <Button onClick={() => setOpen(true)} appearance="primary">添加</Button>
+
+            <Modal show={open} onHide={() => { setOpen(false) }}>
+                <Modal.Header>
+                    <Modal.Title>添加待办：</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Input componentClass="textarea" rows={6} onChange={(value) => { setContent(value) }} />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button appearance="primary" onClick={onAddTodo}>添加</Button>
+                    <Button onClick={() => { setOpen(false) }} >取消</Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+}
+
+function EditTodoModal(props) {
+    let [content, setContent] = useState(props.todo.content);
+    let [open, setOpen] = useState(false);
+
+    const onEditTodo = () => {
+        let todo = props.todo;
+        todo.content = content;
+        axios.post("/api/todo/edit", todo).then(response => {
+            if (response.status === 200) {
+                Alert.success("修改成功");
+                props.afterEdit(response.data);
+            } else {
+                Alert.error("修改失败");
+            }
+        }).catch(e => {
+            Alert.error("网络错误");
+        });
+        setOpen(false);
+    }
+
+    return (
+        <div style={{ display: "inline-block" }}>
+            <Button onClick={() => setOpen(true)} appearance="link" color="blue" disabled={props.disable}>编辑</Button>
+
+            <Modal show={open} onHide={() => { setOpen(false) }}>
+                <Modal.Header>
+                    <Modal.Title>编辑待办：</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Input componentClass="textarea" rows={6} value={content} onChange={(value) => { setContent(value) }} />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button appearance="primary" onClick={onEditTodo}>确定</Button>
+                    <Button onClick={() => { setOpen(false) }} >取消</Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+}
+
+function DeleteTodoModal(props) {
+    let [open, setOpen] = useState(false);
+
+    const deleteTodo = () => {
+        axios.get("/api/todo/delete?id=" + props.todo.id)
+            .then(response => {
+                if (response.status === 200) {
+                    props.afterDelete(props.todo.id);
+                    Alert.success("删除成功");
+                } else {
+                    console.log(response);
+                    Alert.error("删除失败");
+                }
+            }).catch(e => {
+                console.log(e);
+                Alert.error("网络错误");
+            });
+        setOpen(false);
+    }
+
+    return (
+        <div style={{ display: "inline-block" }}>
+            <Button appearance="link" color="red" onClick={() => setOpen(true)} > 删除 </Button>
+
+            <Modal show={open} onHide={() => setOpen(false)}>
+                <Modal.Header>
+                    <Modal.Title>确认删除这项代办？</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {props.todo.finished ?
+                        (<div>
+                            <Tag color="green">已完成</Tag>
+                            <span style={{ fontSize: "12px", color: "#aaa" }}>
+                                {dateFormat(props.todo.finishTime)}
+                            </span>
+                        </div>) :
+                        (<div>
+                            <Tag color="orange">未完成</Tag>
+                        </div>)}
+                    <br />
+                    <div style={{ textAlign: "justify" }}>
+                        {props.todo.content}
+                    </div>
+                    <br />
+                    <span style={{ fontSize: "12px", color: "#aaa" }}>
+                        创建于{dateFormat(props.todo.createTime)}
+                    </span>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button appearance="primary" color="red" onClick={deleteTodo}>删除</Button>
+                    <Button onClick={() => setOpen(false)}>取消</Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    )
+}
+
+class TodoContent extends React.Component {
+    state = {
+        todos: [],
+        finished: []
+    };
+
+    componentDidMount() {
+        if (!this.props.user)
+            return;
+        
+        axios.get("/api/todo/all?userId=" + this.props.user.id)
+            .then((response) => {
+                if (response.status === 200) {
+                    let data = response.data;
+                    this.setState({
+                        todos: data.filter((item) => !item.finished),
+                        finished: data.filter((item) => item.finished)
+                    });
+                } else {
+                    Alert.error("无法获取到数据");
+                    console.log(response);
+                }
+            }).catch((e) => {
+                Alert.error("无法获取到数据");
+                console.log(e);
+            });
+    }
+
+    afterAddTodo = (todo) => {
+        this.setState({
+            todos: [].concat(todo, this.state.todos)
+        });
+    };
+
+    afterEditTodo = (todo) => {
+        let position = this.state.todos.findIndex((item) => item.id === todo.id);
+        if (position > 0) {
+            let todos = [...this.state.todos];
+            todos.splice(position, 1, todo);
+            this.setState({
+                todos
+            });
+        }
+
+    }
+
+    afterDeleteTodo = (id) => {
+        this.setState({
+            todos: this.state.todos.filter((todo) => todo.id !== id),
+            finished: this.state.finished.filter((todo) => todo.id !== id)
+        });
+    }
+
+    afterChangedTodoStatus = (value, checked) => {
+        if (checked) {
+            value.finished = true;
+            value.finishTime = new Date().getTime();
+            axios.post("/api/todo/edit", value)
+                .then(response => {
+                    if (response.status === 200) {
+                        Alert.success("已完成");
+                        let data = response.data;
+                        let finished = [...this.state.finished];
+                        finished.unshift(data);
+
+                        this.setState({
+                            todos: this.state.todos.filter((todo) => todo.id !== data.id),
+                            finished
+                        });
+                    } else {
+                        Alert.error("无法修改状态……");
+                        console.log(response);
+                    }
+                })
+                .catch(e => {
+                    Alert.error("网络错误");
+                    console.log(e);
+                });
+        } else {
+            value.finished = false;
+            value.finishTime = null;
+            axios.post("/api/todo/edit", value)
+                .then(response => {
+                    if (response.status === 200) {
+                        Alert.success("已取消");
+                        let data = response.data;
+                        let todos = [...this.state.todos];
+                        todos.unshift(data);
+                        this.setState({
+                            todos,
+                            finished: this.state.finished.filter((todo) => todo.id !== data.id)
+                        });
+                    } else {
+                        Alert.error("无法修改状态……");
+                        console.log(response);
+                    }
+                })
+                .catch(e => {
+                    Alert.error("网络错误");
+                    console.log(e);
+                });
+        }
+    }
+
     render() {
-        let todos = [
-            "todo 1: 点滴记录，生活不再盲目。",
-            "两个结合”的提出，是中国共产党立足百年华诞的重大时刻和“两个一百年”历史交汇的关键节点，对中国共产党不断推动理论创新、进行理论创造的科学总结，是以史为鉴、开创未来，对继续发展当代中国马克思主义、21世纪马克思主义的明确宣示。",
-            "建党百年的宝贵经验。在中国人民和中华民族的伟大觉醒中，在马克思列宁主义同中国工人运动的紧密结合中，中国共产党应运而生。在党成立初期和领导革命早期，由于对马克思主义的理解不够深刻，对中国革命实际把握不够准确，曾一度机械地、教条式地理解和运用马克思主义，因而走了不少弯路，甚至使中国革命一度陷入绝境。经过艰辛探索，并在付出惨痛代价后，中国共产党开始认识到马克思主义必须与中国实际相结合才能取得革命成功。1938年，党的六届六中全会正式提出“马克思主义中国化”的重大命题，标志着我们党在理论上开始走向成熟。之后，我们党自觉地推进马克思主义和中国实际相结合，形成了一系列重大理论成果，指导中国革命、建设和改革不断取得成功。"
-        ];
-
-        let finished = [
-            "“两弹一星”精神是中国共产党人精神谱系的重要组成部分，是载人航天精神之源。",
-            "善良的人们无不渴望和平，但在产生战争的社会根源没有消除之前，永久和平是不可能实现的。居安思危、有备无患历来是中国的立国之本，也是从战争中获得的血的教训。面对战争的威胁，我们只能积极应对，加强国防建设，用实力捍卫和平。",
-            "伟大事业孕育伟大精神，伟大精神引领伟大事业。在中国共产党领导下，把社会主义制度优势转化为国防科研工作优势，团结凝聚广大国防科研工作者坚定信仰信念，将生命融入使命，以超常的付出把“两弹一星”研制成功，把“两弹一星”精神发扬光大，铸就了辉煌的业绩，为国家在国际舞台上奠定了坚实的大国地位，对于实现全面建成社会主义现代化强国，实现中华民族伟大复兴的中国梦依然具有十分重要的战略意义。"
-        ];
-
+        if (!this.props.user)
+            return (<Redirect to="/" />);
+        
+        let todos = [...this.state.todos];
+        todos.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime());
+        let finished = [...this.state.finished];
+        finished.sort((a, b) => new Date(b.finishTime).getTime() - new Date(a.finishTime).getTime());
+        //todo: 显示每条todo的创建和完成时间
         return (
             <div>
-                <FlexboxGrid justify="center" style={{ marginBottom: "15px" }}>
+                <FlexboxGrid justify="center" style={{ marginBottom: "15px", marginTop:"20px" }}>
                     <FlexboxGrid.Item colspan={18}>
                         <FlexboxGrid align="middle">
-                            <FlexboxGrid.Item colspan={20}>
-                                <h3>{`有${todos.length}项代办未完成：`}</h3>
+                            <FlexboxGrid.Item colspan={21}>
+                                <h3>{`有${this.state.todos.length}项代办未完成：`}</h3>
                             </FlexboxGrid.Item>
 
-                            <FlexboxGrid.Item colspan={4} style={{ textAlign: "center" }}>
-                                <Button appearance="primary">添加</Button>
+                            <FlexboxGrid.Item colspan={3} style={{ textAlign: "center" }}>
+                                <AddTodoModal userId={this.props.user.id} afterAdd={this.afterAddTodo} />
                             </FlexboxGrid.Item>
                         </FlexboxGrid>
                     </FlexboxGrid.Item>
@@ -39,57 +285,62 @@ class todoPage extends React.Component {
                 <FlexboxGrid justify="center">
                     <FlexboxGrid.Item colspan={18}>
                         <List>
-                            {todos.map((todo, index) => {
+
+                            {todos.map((todo) => {
                                 return (
-                                    <List.Item key={index}>
+                                    <List.Item key={todo.id}>
                                         <FlexboxGrid align="middle">
-                                            <FlexboxGrid.Item colspan={20}>
-                                                <Checkbox>{todo}</Checkbox>
+                                            <FlexboxGrid.Item colspan={21} style={{ textAlign: "justify" }}>
+                                                <Checkbox value={todo} onChange={this.afterChangedTodoStatus}>
+                                                    {todo.content}
+                                                    <div style={{paddingTop: "10px", fontSize:"12px", color:"#aaa"}}>
+                                                        创建于{dateFormat(todo.createTime)}
+                                                    </div>
+                                                </Checkbox>
                                             </FlexboxGrid.Item>
-                                            <FlexboxGrid.Item colspan={4} style={{ textAlign: "center" }}>
-                                                <a>编辑</a>&nbsp;&nbsp;
-                                                <a style={{color: "red"}}>删除</a>
+                                            <FlexboxGrid.Item colspan={3} style={{ textAlign: "center" }}>
+                                                <EditTodoModal todo={todo} afterEdit={this.afterEditTodo} />
+                                                <DeleteTodoModal todo={todo} afterDelete={this.afterDeleteTodo} />
                                             </FlexboxGrid.Item>
                                         </FlexboxGrid>
                                     </List.Item>
                                 );
                             })}
 
-                            {finished.map((todo, index) => {
+                            {finished.map((todo) => {
                                 return (
-                                    <List.Item key={index}>
+                                    <List.Item key={todo.id}>
                                         <FlexboxGrid align="middle">
-                                            <FlexboxGrid.Item colspan={20}>
-                                                <Checkbox defaultChecked><span style={finishedTodoStyle}>{todo}</span></Checkbox>
+                                            <FlexboxGrid.Item colspan={21} style={{ textAlign: "justify" }}>
+                                                <Checkbox defaultChecked value={todo} onChange={this.afterChangedTodoStatus}>
+                                                    <span className="finished-todo">{todo.content}</span>
+
+                                                    <div style={{ paddingTop: "10px", fontSize: "12px", color: "#aaa" }}>
+                                                        创建于{dateFormat(todo.createTime)}&nbsp;&nbsp;/&nbsp;&nbsp;完成于{dateFormat(todo.finishTime)}
+                                                    </div>
+                                                </Checkbox>
                                             </FlexboxGrid.Item>
-                                            <FlexboxGrid.Item colspan={4} style={{ textAlign: "center" }}>
-                                                <a>编辑</a>&nbsp;&nbsp;
-                                                <a style={{ color: "red" }}>删除</a>
+                                            <FlexboxGrid.Item colspan={3} style={{ textAlign: "center" }}>
+                                                <EditTodoModal disable={true} todo={todo} afterEdit={this.afterEditTodo} />
+                                                <DeleteTodoModal todo={todo} afterDelete={this.afterDeleteTodo} />
                                             </FlexboxGrid.Item>
                                         </FlexboxGrid>
                                     </List.Item>
                                 );
                             })}
-                            {/* 
 
-                                <List.Item>
-                                    <FlexboxGrid align="middle">
-                                        <FlexboxGrid.Item colspan={20}>
-                                            <Checkbox>“</Checkbox>
-                                        </FlexboxGrid.Item>
-                                        <FlexboxGrid.Item colspan={4} style={{ textAlign: "center" }}>
-                                            <a>编辑</a>&nbsp;&nbsp;
-                                            <a>删除</a>
-                                        </FlexboxGrid.Item>
-                                    </FlexboxGrid>
-                                </List.Item> */}
                         </List>
                     </FlexboxGrid.Item>
                 </FlexboxGrid>
             </div>
-
         );
     }
 }
 
-export default todoPage;
+const TodoPage = connect(
+    (store) => {
+        return { user: store.userReducer.user };
+    }
+)(TodoContent);
+
+export default TodoPage;

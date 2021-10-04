@@ -1,22 +1,29 @@
 import React from "react";
-import { Alert, Avatar, Button, Container, Content, ControlLabel, Dropdown, Form, FormControl, FormGroup, Header, Icon, Loader, Modal, Nav, Navbar, Uploader } from "rsuite";
+import { Alert, Avatar, Button, Container, Content, ControlLabel, Dropdown, Footer, Form, FormControl, FormGroup, Header, Icon, Loader, Modal, Nav, Navbar, Uploader } from "rsuite";
 import axios from "axios";
 import { nanoid } from "nanoid";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import { userLogin, userLogout } from "./store/users";
 import HomePage from './components/home';
 
 
 function Topbar(props) {
   let user = props.user;
+  let localUser = localStorage.getItem("ONLYAPPS_USER");
+
+  if (user===null&&localUser !== null) {
+    props.userLogin(JSON.parse(localUser));
+  }
+
   return (
-    <Navbar appearance={"inverse"} style={{marginBottom: "20px"}}>
+    <Navbar appearance={"inverse"}>
       <Navbar.Header>
-        <h3 style={{ margin: "6px 8px 0 16px" }}>Only APPs</h3>
+        <h3 style={{ margin: "6px 8px 0 16px" }}><Link to="/">Only APPs</Link></h3>
       </Navbar.Header>
       <Navbar.Body>
         <Nav>
-          <Nav.Item>首页</Nav.Item>
+          <Link to="/"><Nav.Item>首页</Nav.Item></Link>
           <Nav.Item>所有应用</Nav.Item>
         </Nav>
 
@@ -27,7 +34,7 @@ function Topbar(props) {
               <Dropdown title={user.username}>
                 <Dropdown.Item icon={<Icon icon="user" />}>个人中心</Dropdown.Item>
                 <Dropdown.Item icon={<Icon icon="cog" />}>设置</Dropdown.Item>
-                <a onClick={props.userLogout} style={{ color: "#575757" }}>
+                <a onClick={props.userLogout} style={{ color: "#575757" }} href="#">
                   <Dropdown.Item icon={<Icon icon="sign-out" />}>退出</Dropdown.Item>
                 </a>
               </Dropdown>
@@ -50,7 +57,12 @@ function Topbar(props) {
 
 const TopMenuBar = connect(
   (store) => { return { user: store.userReducer.user } },
-  (dispatch) => { return { userLogout: () => dispatch(userLogout()) } })(Topbar);
+  (dispatch) => {
+    return {
+      userLogin: (user) => dispatch(userLogin(user)),
+      userLogout: () => dispatch(userLogout())
+    }
+  })(Topbar);
 
 class RegistModal extends React.Component {
   constructor(props) {
@@ -81,7 +93,7 @@ class RegistModal extends React.Component {
       SecretKey: "zKHAYatojAqVQk49HrbCE_JammLr8AxNlwS2JyLa",
       Bucket: "xjbdevelop"
     }).then(response => {
-      if (response.status == 200) {
+      if (response.status === 200) {
         let qiniuToken = response.data;
         let avatarKey = nanoid();
         this.setState({ qiniuToken, avatarKey });
@@ -188,7 +200,7 @@ class RegistModal extends React.Component {
   }
 
   uploadSuccess = (response, file) => {
-    let avatarUrl = "http://qy691nngq.hn-bkt.clouddn.com/" + response.key;
+    let avatarUrl = "http://qn.onlyapps.cn/" + response.key;
     this.setState({ uploading: false, avatarUrl });
     console.log("上传成功，url：", avatarUrl);
   }
@@ -201,7 +213,7 @@ class RegistModal extends React.Component {
   render() {
     return (
       <div>
-        <a onClick={this.open} style={{ color: "white", textDecoration: "none" }}>
+        <a onClick={this.open} style={{ color: "white", textDecoration: "none" }} href="#">
           <Icon icon="user" />&nbsp;&nbsp;注册
         </a>
 
@@ -225,7 +237,7 @@ class RegistModal extends React.Component {
                 >
                   <button>
                     {this.state.uploading && <Loader backdrop center />}
-                    {this.state.fileInfo ? <img src={this.state.fileInfo} width="150px" height="150px" />
+                    {this.state.fileInfo ? <img src={this.state.fileInfo} width="150px" height="150px" alt="头像" />
                       : <Icon icon="avatar" size="5x" />}
                   </button>
                 </Uploader>
@@ -301,9 +313,13 @@ class Login extends React.Component {
   render() {
     return (
       <div>
-        <a onClick={this.open} style={{ color: "white", textDecoration: "none" }}>
+        <a onClick={this.open} style={{
+          color: "white", textDecoration: "none",
+          backgroundColor: "#003f8c", padding: "5px 8px", borderRadius:"5px"
+        }} href="#">
           <Icon icon="sign-in" />&nbsp;&nbsp;登入
         </a>
+        
 
         <Modal backdrop="static" show={this.state.show} onHide={this.close}>
           <Modal.Header>
@@ -342,7 +358,6 @@ const LoginModal = connect(
     }
   })(Login);
 
-
 function App() {
   return (
     <Container>
@@ -352,6 +367,8 @@ function App() {
       <Content>
         <HomePage />
       </Content>
+      <Footer>
+      </Footer>
     </Container>
   );
 }

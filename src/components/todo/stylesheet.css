@@ -1,4 +1,9 @@
 .finished-todo{
     text-decoration: line-through;
-    color: lightslategray;
+    color: #aaa;
+}
+
+.rs-list-item-md {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }

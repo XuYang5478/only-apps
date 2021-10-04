@@ -5,6 +5,7 @@ const USER_LOGOUT = '[User] Logout';
 
 //actions
 export const userLogin = (user) => {
+    localStorage.setItem("ONLYAPPS_USER", JSON.stringify(user));
     return {
         type: USER_LOGIN,
         payload: user
@@ -12,6 +13,8 @@ export const userLogin = (user) => {
 };
 
 export const userLogout = () => {
+    localStorage.removeItem("ONLYAPPS_USER");
+    window.location.replace("/");
     return {
         type: USER_LOGOUT
     }
