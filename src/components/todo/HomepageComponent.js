@@ -89,7 +89,7 @@ class Block extends React.Component {
 
     render() {
         return (
-            <PanelGroup bordered style={{ width: "250px" }}>
+            <PanelGroup bordered style={{ width: "250px", display: "inline-block" }}>
                 <Panel style={{ width: "250px", height: "175px", borderRadius: "0px", overflowY: "auto" }}>
                     {this.state.todos.map(todo => {
                         return (

@@ -1,8 +1,9 @@
 import { FlexboxGrid } from 'rsuite';
 import { Route, Switch } from 'react-router-dom';
+import { connect } from 'react-redux';
 import MyApp from './MyApp'
 import TodoPage from '../todo';
-import { connect } from 'react-redux';
+import CovidPage from '../CovidTracker';
 
 function MyAppPanel(props) {
     return props.user ? (
@@ -57,6 +58,8 @@ function NewerPage() {
 function HomePage(props) {
     return (
         <Switch>
+            <Route path="/covid" component={CovidPage} />
+
             <Route path="/todo" component={TodoPage} />
 
             <Route path="/" component={HomePanel} />
