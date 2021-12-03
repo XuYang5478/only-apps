@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import MyApp from './MyApp'
 import TodoPage from '../todo';
 import CovidPage from '../CovidTracker';
+import NotePage from '../note';
 
 function MyAppPanel(props) {
     return props.user ? (
@@ -60,8 +61,8 @@ function HomePage(props) {
         <Switch>
             <Route path="/covid" component={CovidPage} />
 
+            <Route path="/note" component={NotePage} />
             <Route path="/todo" component={TodoPage} />
-
             <Route path="/" component={HomePanel} />
         </Switch>
     )

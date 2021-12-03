@@ -48,7 +48,7 @@ class CovidBlock extends React.Component{
 
     render() {
         return (
-            <PanelGroup bordered style={{ width: "250px", display: "inline-block", marginLeft:"16px" }}>
+            <PanelGroup bordered style={{ width: "250px"}}>
                 <Panel style={{ width: "250px", height: "175px", borderRadius: "0px", overflowY: "auto" }}>
                     <h4>国内</h4>
                     <span style={{ color: "orange" }}>今日新增确诊：{Number(this.state.total.currentConfirmedIncr).toLocaleString()}</span> <br />
