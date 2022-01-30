@@ -1,3 +1,14 @@
+# 项目简介
+平常会写一些没用的小工具放在这个网站上，需要配合[后端项目](https://github.com/XuYang5478/OnlyAppBackend)使用。点击[这里](http://www.onlyapps.cn/)可以看到已经部署好的web网站。
+- React
+- Redux
+- Axios
+- ...
+# 目前进度
+- [x] Todo
+- [x] 疫情数据展示
+- [ ] Note
+- [ ] ...
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
