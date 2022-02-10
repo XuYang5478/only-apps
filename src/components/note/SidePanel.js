@@ -139,7 +139,6 @@ class SideContent extends React.Component {
 
     state = {
         selected_menu: "folder",
-        selected_dir_item: { id: "/", name: "所有笔记" },
         expand_folders: [], //展开的文件夹
         folder_record: null,//从根节点到所选文件夹的路径
         folders: [],
@@ -184,7 +183,7 @@ class SideContent extends React.Component {
     }
 
     update_folder_list = (data) => {
-        let folders = [{ id: "/", name: "所有笔记" }];
+        let folders = [{ id: "-1", name: "所有笔记" }];
         data.forEach(item => folders.push(this.process_folder(item)));
         this.setState({
             folders,
@@ -196,16 +195,16 @@ class SideContent extends React.Component {
         let expand_folders = [...this.state.expand_folders];
         expand_folders.push(value);
         this.setState({
-            selected_dir_item: folder,
             expand_folders
         });
+        this.props.on_select_folder(folder);
     }
 
     on_expand_folder = (expandItemValues, currentFolder) => {
         this.setState({
             expand_folders: expandItemValues,
-            selected_dir_item: currentFolder
         });
+        this.props.on_select_folder(currentFolder);
     }
 
     render() {
@@ -228,10 +227,10 @@ class SideContent extends React.Component {
                             <Nav.Item eventKey="catalog">目录</Nav.Item>
                         </Nav>
                         <Nav pullRight>
-                            <CreateFolderModal current_folder={this.state.selected_dir_item} open={this.state.create_folder_modal}
+                            <CreateFolderModal current_folder={this.props.current_dir} open={this.state.create_folder_modal}
                                 userId={this.props.user.id} open_modal={this.open_create_modal} onCreate={this.update_folder_list} />
                             
-                            <Dropdown icon={<AiOutlineMenu size="1.5em" />} noCaret placement="bottomEnd" disabled={this.state.selected_dir_item.id=="/"}>
+                            <Dropdown icon={<AiOutlineMenu size="1.5em" />} noCaret placement="bottomEnd" disabled={this.props.current_dir.id=="/"}>
                                 <Dropdown.Item onSelect={()=>this.open_create_modal(true)}>
                                     <div style={{display: "flex", alignItems: "center"}}>
                                         {<AiOutlineFolderAdd />}
@@ -245,7 +244,7 @@ class SideContent extends React.Component {
                                         <span>&nbsp;&nbsp;重命名</span>
                                     </div>
                                 </Dropdown.Item>
-                                <RenameFolderModal current_folder={this.state.selected_dir_item} open={this.state.rename_folder_modal}
+                                <RenameFolderModal current_folder={this.props.current_dir} open={this.state.rename_folder_modal}
                                     userId={this.props.user.id} open_modal={this.open_rename_modal} onRename={this.update_folder_list} />
                                 
                                 <Dropdown.Item onSelect={()=>this.open_delete_modal(true)}>
@@ -254,7 +253,7 @@ class SideContent extends React.Component {
                                         <span>&nbsp;&nbsp;删除</span>
                                     </div>
                                 </Dropdown.Item>
-                                <DeleteFolderModal current_folder={this.state.selected_dir_item} open={this.state.delete_folder_modal}
+                                <DeleteFolderModal current_folder={this.props.current_dir} open={this.state.delete_folder_modal}
                                     userId={this.props.user.id} open_modal={this.open_delete_modal} onDelete={this.update_folder_list}/>
                             </Dropdown>
                         </Nav>
@@ -262,7 +261,7 @@ class SideContent extends React.Component {
 
                     <Sidenav>
                         <Sidenav.Body>
-                            <Tree data={this.state.folders} valueKey="id" labelKey="name" onSelect={this.on_select_folder} value={this.state.selected_dir_item.id}
+                            <Tree data={this.state.folders} valueKey="id" labelKey="name" onSelect={this.on_select_folder} value={this.props.current_dir.id}
                                 onExpand={this.on_expand_folder} expandItemValues={this.state.expand_folders}
                                 style={{ maxHeight: "80%", backgroundColor: "#F5F5F5" }} />
                         </Sidenav.Body>
@@ -273,9 +272,7 @@ class SideContent extends React.Component {
     }
 }
 
-const SidePanel = connect((store) => {
-    return { user: store.userReducer.user }
-})(SideContent);
+const SidePanel = SideContent;
 
 
 export { SidePanel };

@@ -4,65 +4,9 @@ import { Switch, Route, Link } from "react-router-dom";
 import { Breadcrumb, Button, Input, Dropdown, FlexboxGrid, List, Nav, Panel, Sidenav, Placeholder, Affix, IconButton, Modal, Alert, Tree } from "rsuite";
 import Vditor from 'vditor';
 import { SidePanel } from "./SidePanel";
+import { TitleList } from "./NoteList";
+import { connect } from "react-redux";
 
-
-
-
-function ListTopTool(props) {
-    return (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <Breadcrumb>
-                <Breadcrumb.Item>Folder 3</Breadcrumb.Item>
-                <Breadcrumb.Item>Child Folder 2</Breadcrumb.Item>
-                <Breadcrumb.Item active>Child 2 Folder 1</Breadcrumb.Item>
-            </Breadcrumb>
-            <Link to='editor/-1'>
-                <Button appearance="primary">新建笔记</Button>
-            </Link>
-
-        </div>
-    );
-}
-class TitleList extends React.Component {
-    render() {
-        const { Paragraph } = Placeholder;
-        let num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        return (
-            <div>
-                <ListTopTool />
-                <FlexboxGrid style={{ padding: "12px" }}>
-                    <FlexboxGrid.Item colspan={18}>
-                        <Link to="preview/1">
-                            <h3>应用随机过程</h3>
-                        </Link>
-
-                        <Paragraph rows={3} active />
-                        <span style={{ marginTop: '8px', color: 'grey' }}>更新于：{new Date().toLocaleDateString()}</span>
-                    </FlexboxGrid.Item>
-                    <FlexboxGrid.Item colspan={6}>
-                        <Placeholder.Graph active />
-                    </FlexboxGrid.Item>
-                </FlexboxGrid>
-                <List hover>
-                    {num.map((item) => (<List.Item key={item}>
-                        <FlexboxGrid style={{ padding: "12px" }}>
-                            <FlexboxGrid.Item colspan={18}>
-                                <h3>{"Title " + item}</h3>
-                                <Paragraph rows={3} active />
-                                <span style={{ marginTop: '8px', color: 'grey' }}>更新于：{new Date().toLocaleDateString()}</span>
-                            </FlexboxGrid.Item>
-                            <FlexboxGrid.Item colspan={6}>
-                                <Placeholder.Graph active />
-                            </FlexboxGrid.Item>
-                        </FlexboxGrid>
-                    </List.Item>)
-                    )}
-                </List>
-            </div>
-
-        );
-    }
-}
 
 function DisplayTitle(props) {
     return (
@@ -165,18 +109,29 @@ class NotePreviewer extends React.Component {
 }
 
 class NoteContent extends React.Component {
+
+    state = {
+        current_dir: { id: "-1", name: "所有笔记" }
+    }
+
+    on_select_folder = (folder) => {
+        this.setState({ current_dir: folder });
+    }
+
     render() {
         return (
             <div>
                 <div style={{ height: "18px" }}></div>
                 <FlexboxGrid justify="center">
                     <FlexboxGrid.Item colspan={5}>
-                        <SidePanel />
+                        <SidePanel user={this.props.user} current_dir={this.state.current_dir} on_select_folder={this.on_select_folder} />
                     </FlexboxGrid.Item>
                     <FlexboxGrid.Item colspan={17}>
                         <div style={{ paddingLeft: "14px" }}>
                             <Switch>
-                                <Route path='/note/list' component={TitleList} />
+                                <Route path='/note'>
+                                    <TitleList userId={this.props.user.id} current_dir={this.state.current_dir} />
+                                </Route>
                                 <Route path='/note/editor/:id' component={NoteEditor} />
                                 <Route path='/note/preview/:id' component={NotePreviewer}>
                                 </Route>
@@ -185,11 +140,12 @@ class NoteContent extends React.Component {
                     </FlexboxGrid.Item>
                 </FlexboxGrid>
             </div>
-
-
         );
     }
 }
 
-const NotePage = NoteContent;
+const NotePage = connect((store) => {
+    return { user: store.userReducer.user }
+})(NoteContent);
+
 export default NotePage;
