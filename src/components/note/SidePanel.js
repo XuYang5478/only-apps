@@ -41,7 +41,7 @@ function CreateFolderModal(props) {
                 </Modal.Header>
                 <Modal.Body>
                     <Input value={name} onChange={(value) => setName(value)} /> <br />
-                    将会创建在：{props.current_folder.id == "/" ? "/" : props.current_folder.name}
+                    将会创建在：{props.current_folder.id == "-1" ? "/" : props.current_folder.name}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button appearance="primary" onClick={on_create} disabled={name == ""}>创建</Button>
