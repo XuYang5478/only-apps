@@ -94,12 +94,15 @@ function DeleteModal(props) {
 
 class TitleList extends React.Component {
 
-    state = {
-        sort_by: "0",
+   on_mouse_over = (event, id) => {
+        // console.log(event, id);
+        event.stopPropagation();
+        document.getElementById(`buttons_${id}`).hidden = false;
     }
 
-    change_sort_way = (way) => {
-        this.setState({ sort_by: way });
+    on_mouse_out = (event, id) => {
+        event.stopPropagation();
+        document.getElementById(`buttons_${id}`).hidden = true;
     }
 
     render() {
@@ -107,7 +110,7 @@ class TitleList extends React.Component {
         let num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         return (
             <div>
-                <ListTopTool sort_by={this.state.sort_by} change_sort_way={this.change_sort_way}
+                <ListTopTool sort_by={this.props.sort_by} change_sort_way={this.props.on_sort}
                     current_dir={this.props.current_dir} />
                 {/* <FlexboxGrid style={{ padding: "12px" }}>
                     <FlexboxGrid.Item colspan={18}>
@@ -126,18 +129,18 @@ class TitleList extends React.Component {
                     {this.props.notes.map((item) => (<List.Item key={item.id}>
                         {/* <FlexboxGrid style={{ padding: "12px" }}>
                             <FlexboxGrid.Item colspan={18}> */}
-                        <div style={{ padding: "12px 0" }}>
+                        <div style={{ padding: "12px 0" }} onMouseOver={(e)=>this.on_mouse_over(e, item.id)} onMouseOut={(e) => this.on_mouse_out(e, item.id)}>
                             <div style={{ display: "flex", justifyContent: "space-between" }}>
                                 <Link to={"/note/preview/"+item.id}>
                                     <h3>{item.title}</h3>
                                 </Link>
-                                <div>
-                                    {/*TODO: 鼠标悬停上面才显示  */}
+                                <div id={`buttons_${item.id}`} hidden>
                                     <Link to={`/note/editor/${item.id}`}>
                                         <Button appearance="link">修改</Button>
                                     </Link>
-                                    <DeleteModal userId={this.props.userId} dirId={this.props.current_dir.id} noteId={item.id}
-                                        on_delete={this.props.on_delete} />
+                                    {this.props.current_dir.id != -1 ? (<DeleteModal userId={this.props.userId} dirId={this.props.current_dir.id} noteId={item.id}
+                                        on_delete={this.props.on_delete} />) : null}
+                                    
                                 </div>
                             </div>
 

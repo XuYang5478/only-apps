@@ -14,7 +14,8 @@ class NoteContent extends React.Component {
 
     state = {
         current_dir: { id: "-1", name: "所有笔记" },
-        notes: []
+        notes: [],
+        sort_by: "0"
     }
 
     componentDidMount() {
@@ -37,11 +38,31 @@ class NoteContent extends React.Component {
         axios.get(url).then((response) => {
             if (response.status === 200) {
                 this.setState({ notes: response.data });
+                this.on_sort("0");
                 console.log(response.data);
             } else {
                 Alert.warning("无法刷新笔记列表：" + `${response.status} ${response.statusText}`);
             }
         }).catch((e) => { console.error("无法刷新笔记列表", e) })
+    }
+
+    on_sort = (way) => {
+        let notes = [...this.state.notes];
+        switch (way) {
+            case "0":
+                notes.sort((a, b) => new Date(b.modified_time).getTime() - new Date(a.modified_time).getTime())
+                break;
+            case "1":
+                notes.sort((a, b) => new Date(b.created_time).getTime() - new Date(a.created_time).getTime())
+                break;
+            case "2":
+                notes.sort((a, b) => a.title.localeCompare(b.title))
+                break;
+
+            default:
+                break;
+        }
+        this.setState({ sort_by: way, notes });
     }
 
     render() {
@@ -65,7 +86,7 @@ class NoteContent extends React.Component {
 
                                 <Route path='/note'>
                                     <TitleList notes={this.state.notes} userId={this.props.user.id} current_dir={this.state.current_dir}
-                                        on_delete={this.update_notes} />
+                                        on_delete={this.update_notes} sort_by={this.state.sort_by} on_sort={this.on_sort} />
                                 </Route>
                             </Switch>
                         </div>
