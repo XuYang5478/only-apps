@@ -52,10 +52,10 @@ class CovidBlock extends React.Component{
                 <Panel style={{ width: "250px", height: "175px", borderRadius: "0px", overflowY: "auto" }}>
                     <h4>国内</h4>
                     <span style={{ color: "orange" }}>今日新增确诊：{Number(this.state.total.currentConfirmedIncr).toLocaleString()}</span> <br />
-                    <span style={{ color: "black" }}>今日新增死亡：{Number(this.state.total.deadIncr).toLocaleString()}</span>
+                    <span style={{ color: "#575757" }}>今日新增死亡：{Number(this.state.total.deadIncr).toLocaleString()}</span>
                     <h4 style={{marginTop:"7px"}}>全球</h4>
                     <span style={{ color: "orange" }}>今日新增确诊：{Number(this.state.total.globalStatistics.currentConfirmedIncr).toLocaleString()}</span> <br />
-                    <span style={{ color: "black" }}>今日新增死亡：{Number(this.state.total.globalStatistics.deadIncr).toLocaleString()}</span>
+                    <span style={{ color: "#575757" }}>今日新增死亡：{Number(this.state.total.globalStatistics.deadIncr).toLocaleString()}</span>
                 </Panel>
                 <Panel style={{ width: "250px", height: "75px", backgroundColor: "lightpink", borderRadius: "0px" }}>
                     <Link to="/covid" style={{ fontSize: "20px", fontWeight: "bold", color: "#575757" }} >

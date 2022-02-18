@@ -3,7 +3,9 @@ import { Button, Input, Nav, Panel, Sidenav, Affix, Modal, Alert, Tree, Dropdown
 import { AiOutlineDelete, AiOutlineFolderAdd, AiOutlineMenu } from 'react-icons/ai';
 import { CgRename} from 'react-icons/cg'
 import axios from "axios";
-import { connect } from "react-redux";
+import { MarkdownNavbar } from "markdown-navbar";
+import 'markdown-navbar/dist/navbar.css';
+import { Link, Redirect } from "react-router-dom";
 
 function CreateFolderModal(props) {
     let [name, setName] = useState('');
@@ -135,6 +137,14 @@ function DeleteFolderModal(props) {
     )
 }
 
+function TreeNode(node) {
+    return (
+        <Link to="/note">
+            {node.name}
+        </Link>
+    );
+}
+
 class SideContent extends React.Component {
 
     state = {
@@ -142,10 +152,13 @@ class SideContent extends React.Component {
         expand_folders: [], //展开的文件夹
         folder_record: null,//从根节点到所选文件夹的路径
         folders: [],
+        catalog: null,
         create_folder_modal: false,
         rename_folder_modal: false,
         delete_folder_modal: false
     }
+
+    
     
     open_create_modal = (open) => {
         this.setState({ create_folder_modal: open });
@@ -207,6 +220,12 @@ class SideContent extends React.Component {
         this.props.on_select_folder(currentFolder);
     }
 
+    show_catalog = (eventKey) => {
+        if (window.location.pathname.includes("preview")) {
+            this.props.set_menu(eventKey);
+        }
+    }
+
     render() {
         let folders = [{ id: 1, name: "Folder 1" }, { id: 2, name: "Folder 2" }, {
             id: 3,
@@ -222,15 +241,15 @@ class SideContent extends React.Component {
             <Affix top={18}>
                 <Panel shaded bodyFill style={{ backgroundColor: "whitesmoke", marginRight: "24px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", backgroundColor: "#eee" }}>
-                        <Nav appearance="subtle" activeKey={this.state.selected_menu} onSelect={(eventKey) => this.setState({ selected_menu: eventKey })}>
-                            <Nav.Item eventKey="folder">文件夹</Nav.Item>
-                            <Nav.Item eventKey="catalog">目录</Nav.Item>
+                        <Nav appearance="subtle" activeKey={this.props.menu} >
+                            <Nav.Item eventKey="folder" onSelect={(eventKey) => this.props.set_menu(eventKey)}>文件夹</Nav.Item>
+                            <Nav.Item eventKey="catalog" onSelect={(eventKey)=>this.show_catalog(eventKey)}>目录</Nav.Item>
                         </Nav>
                         <Nav pullRight>
                             <CreateFolderModal current_folder={this.props.current_dir} open={this.state.create_folder_modal}
                                 userId={this.props.user.id} open_modal={this.open_create_modal} onCreate={this.update_folder_list} />
                             
-                            <Dropdown icon={<AiOutlineMenu size="1.5em" />} noCaret placement="bottomEnd" disabled={this.props.current_dir.id=="/"}>
+                            <Dropdown icon={<AiOutlineMenu size="1.5em" />} noCaret placement="bottomEnd" disabled={this.props.current_dir.id=="-1"}>
                                 <Dropdown.Item onSelect={()=>this.open_create_modal(true)}>
                                     <div style={{display: "flex", alignItems: "center"}}>
                                         {<AiOutlineFolderAdd />}
@@ -261,9 +280,9 @@ class SideContent extends React.Component {
 
                     <Sidenav>
                         <Sidenav.Body>
-                            <Tree data={this.state.folders} valueKey="id" labelKey="name" onSelect={this.on_select_folder} value={this.props.current_dir.id}
-                                onExpand={this.on_expand_folder} expandItemValues={this.state.expand_folders}
-                                style={{ maxHeight: "80%", backgroundColor: "#F5F5F5" }} />
+                            {this.props.menu == "folder" ? (<Tree data={this.state.folders} valueKey="id" labelKey="name" onSelect={this.on_select_folder} value={this.props.current_dir.id}
+                                onExpand={this.on_expand_folder} expandItemValues={this.state.expand_folders} style={{ maxHeight: "80%", backgroundColor: "#F5F5F5" }} renderTreeNode={(node)=>TreeNode(node)} />) :
+                                (<MarkdownNavbar source={this.props.note.content} ordered={false} />)}                            
                         </Sidenav.Body>
                     </Sidenav>
                 </Panel>

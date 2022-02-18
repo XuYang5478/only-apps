@@ -5,6 +5,8 @@ import { InputGroup, Input, Icon, Button, List, Placeholder, SelectPicker, Alert
 
 
 function ListTopTool(props) {
+    const [keyword, setKeyword] = useState("");
+
     let sort_way = [
         {
             "label": "更新时间",
@@ -26,8 +28,8 @@ function ListTopTool(props) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
             <div>
                 <InputGroup inside style={{ paddingLeft: "12px", marginRight: "24px", width: "300px", display: "inline-block" }}>
-                    <Input placeholder="搜索笔记……" />
-                    <InputGroup.Button>
+                    <Input placeholder="搜索笔记……" value={keyword} onChange={(value)=>setKeyword(value)} onPressEnter={()=>props.on_search(keyword)} />
+                    <InputGroup.Button onClick={()=>props.on_search(keyword)}>
                         <Icon icon="search" />
                     </InputGroup.Button>
                 </InputGroup>
@@ -51,7 +53,6 @@ function DeleteModal(props) {
     const delete_note = () => {
         let data = {
             userId: props.userId,
-            dirId: props.dirId,
             noteId: props.noteId
         };
         axios.post("/api/note/delete_note", data)
@@ -71,7 +72,7 @@ function DeleteModal(props) {
 
     return (
         <div style={{display: "inline-block"}}>
-            <Button appearance="link" color="red" onClick={()=>setOpen(true)} disabled={props.dirId<0}>删除</Button>
+            <Button appearance="link" color="red" onClick={()=>setOpen(true)}>删除</Button>
             <Modal show={open} onHide={()=>setOpen(false)}>
                 <Modal.Header>
                     <Modal.Title>确定删除吗？</Modal.Title>
@@ -111,7 +112,7 @@ class TitleList extends React.Component {
         return (
             <div>
                 <ListTopTool sort_by={this.props.sort_by} change_sort_way={this.props.on_sort}
-                    current_dir={this.props.current_dir} />
+                    current_dir={this.props.current_dir}  on_search={this.props.on_search} />
                 {/* <FlexboxGrid style={{ padding: "12px" }}>
                     <FlexboxGrid.Item colspan={18}>
                         <Link to="preview/1">
@@ -138,8 +139,8 @@ class TitleList extends React.Component {
                                     <Link to={`/note/editor/${item.id}`}>
                                         <Button appearance="link">修改</Button>
                                     </Link>
-                                    {this.props.current_dir.id != -1 ? (<DeleteModal userId={this.props.userId} dirId={this.props.current_dir.id} noteId={item.id}
-                                        on_delete={this.props.on_delete} />) : null}
+                                    <DeleteModal userId={this.props.userId} dirId={this.props.current_dir.id} noteId={item.id}
+                                        on_delete={this.props.on_delete} />
                                     
                                 </div>
                             </div>

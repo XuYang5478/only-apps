@@ -3,12 +3,20 @@
 - React
 - Redux
 - Axios
+- React Suite
+- Vditor
 - ...
 # 目前进度
 - [x] Todo
 - [x] 疫情数据展示
-- [ ] Note
+- [x] Note
 - [ ] ...
+# 致谢
+- 感谢[React Suite](https://rsuitejs.com/zh/)为网页提供漂亮的UI组件库
+- 感谢[Chart.js](https://www.chartjs.org/)为图表的渲染提供支持
+- 感谢[Vanessa219](https://b3log.org/vditor/)对笔记编辑和渲染功能提供支持
+- 感谢[parksben/markdown-navbar](https://github.com/parksben/markdown-navbar)对笔记的目录渲染提供支持
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -114,6 +114,7 @@ class NoteEditor extends React.Component {
             header: "新建笔记",
             noteId: -1
         });
+        this.props.set_menu("folder");
         window.history.back();
     }
 
