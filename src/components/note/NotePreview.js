@@ -23,6 +23,12 @@ class NotePreviewer extends React.Component {
                     if (response.data != null) {
                         this.props.select_note(response.data)
                         Vditor.preview(document.getElementById("note-content"), response.data.content, {
+                            hljs: {
+                                lineNumber: true
+                            },
+                            math: {
+                                inlineDigit: true
+                            },
                             speech: {
                                 enable: true,
                             },

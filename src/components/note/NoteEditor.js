@@ -50,13 +50,26 @@ class NoteEditor extends React.Component {
         let noteId = Number(window.location.pathname.split("/").pop());
         let edit_header = this.edit_header;
         const vditor = new Vditor('vditor', {
-            height: 660,
+            height: 810,
             counter: {
-                enable: true
+                enable: true,
+                type: "text"
             },
             outline: {
                 enable: true,
                 position: 'right'
+            },
+            preview: {
+                maxWidth: 1000,
+                hljs: {
+                    lineNumber: true
+                },
+                math: {
+                    inlineDigit: true
+                }
+            },
+            upload: {
+
             },
             after() {
                 if (noteId > 0) {
@@ -74,7 +87,7 @@ class NoteEditor extends React.Component {
                 }
             }
         })
-        this.setState({ editor: vditor, noteId});
+        this.setState({ editor: vditor, noteId });
     }
 
     edit_header = (header) => {
