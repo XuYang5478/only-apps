@@ -52,11 +52,21 @@ class NoteEditor extends React.Component {
         const vditor = new Vditor('vditor', {
             height: 660,
             counter: {
-                enable: true
+                enable: true,
+                type: "text"
             },
             outline: {
                 enable: true,
                 position: 'right'
+            },
+            upload: {
+                accept: 'image/*, .mp3, .wav, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .pdf, .zip, .rar',
+                url: "/api/file/upload",
+                filename(name) {
+                    return name.replace(/[^(a-zA-Z0-9\u4e00-\u9fa5\.)]/g, '').
+                        replace(/[\?\\/:|<>\*\[\]\(\)\$%\{\}@~]/g, '').
+                        replace('/\\s/g', '')
+                },
             },
             after() {
                 if (noteId > 0) {
